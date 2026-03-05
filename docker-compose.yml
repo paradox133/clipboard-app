@@ -1,0 +1,20 @@
+name: clipboard
+
+services:
+  backend:
+    build: ./backend
+    container_name: clipboard-backend
+    ports: ["3089:3089"]
+    volumes:
+      - ./data:/app/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3089
+      - TZ=America/New_York
+    restart: unless-stopped
+  frontend:
+    build: ./frontend
+    container_name: clipboard-frontend
+    ports: ["8274:80"]
+    depends_on: [backend]
+    restart: unless-stopped

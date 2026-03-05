@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClipBoard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-950: #030712;
+    --bg-900: #111827;
+    --bg-800: #1f2937;
+    --bg-700: #374151;
+    --border: #374151;
+    --text-primary: #f9fafb;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    --accent: #6366f1;
+    --accent-hover: #818cf8;
+    --cyan: #06b6d4;
+    --purple: #a855f7;
+    --blue: #3b82f6;
+    --amber: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --pink: #ec4899;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-950);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--bg-900);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 18px; }
+  .logo-icon { font-size: 22px; }
+  .header-stats { display: flex; gap: 16px; margin-left: auto; font-size: 12px; color: var(--text-muted); }
+  .stat-badge { background: var(--bg-800); padding: 3px 10px; border-radius: 20px; }
+
+  /* ── Layout ── */
+  .layout { display: flex; height: calc(100vh - 57px); }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 200px;
+    min-width: 200px;
+    background: var(--bg-900);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 12px 0;
+  }
+  .sidebar-section { padding: 6px 12px; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 8px; }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 16px; cursor: pointer; font-size: 13px;
+    color: var(--text-secondary); border-radius: 0;
+    transition: all 0.15s;
+  }
+  .sidebar-item:hover { background: var(--bg-800); color: var(--text-primary); }
+  .sidebar-item.active { background: rgba(99,102,241,0.15); color: var(--accent-hover); border-left: 2px solid var(--accent); }
+  .sidebar-item .count { margin-left: auto; font-size: 11px; background: var(--bg-800); padding: 1px 6px; border-radius: 10px; }
+
+  /* ── Main ── */
+  .main { flex: 1; overflow-y: auto; }
+
+  /* ── Quick Add ── */
+  .quick-add-wrap { padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--bg-900); }
+  .quick-add-bar {
+    display: flex; gap: 8px; align-items: flex-start;
+    background: var(--bg-800); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 14px;
+    transition: border-color 0.2s;
+  }
+  .quick-add-bar:focus-within { border-color: var(--accent); }
+  .quick-add-icon { font-size: 16px; padding-top: 2px; }
+  .quick-add-inner { flex: 1; }
+  .quick-add-textarea {
+    width: 100%; background: transparent; border: none; outline: none;
+    color: var(--text-primary); font-size: 13px; resize: none;
+    font-family: monospace; min-height: 36px; max-height: 120px;
+    line-height: 1.5;
+  }
+  .quick-add-textarea::placeholder { color: var(--text-muted); font-family: -apple-system, sans-serif; }
+  .quick-add-meta { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; align-items: center; }
+  .qa-input {
+    background: var(--bg-700); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text-primary); font-size: 12px; padding: 4px 8px; outline: none;
+  }
+  .qa-input:focus { border-color: var(--accent); }
+  .btn-add {
+    background: var(--accent); color: white; border: none; border-radius: 6px;
+    padding: 5px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
+    margin-left: auto; transition: background 0.15s;
+  }
+  .btn-add:hover { background: var(--accent-hover); }
+
+  /* ── Filter bar ── */
+  .filter-bar {
+    padding: 10px 20px; display: flex; gap: 8px; align-items: center;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .search-input {
+    width: 100%; background: var(--bg-800); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text-primary); padding: 7px 12px 7px 32px;
+    font-size: 13px; outline: none; transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
+  .type-btn {
+    padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
+    font-size: 12px; cursor: pointer; background: transparent; color: var(--text-secondary);
+    transition: all 0.15s;
+  }
+  .type-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+  .type-btn.active { border-color: var(--accent); color: var(--accent-hover); background: rgba(99,102,241,0.1); }
+
+  /* ── Cards ── */
+  .feed { padding: 16px 20px; }
+  .section-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; margin-bottom: 20px; }
+
+  .clip-card {
+    background: var(--bg-900); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; cursor: pointer; transition: all 0.15s; position: relative;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .clip-card:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+  .clip-card.copied { border-color: var(--green); }
+
+  .card-header { display: flex; align-items: center; gap: 8px; }
+  .type-badge {
+    font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .badge-command { background: rgba(6,182,212,0.15); color: var(--cyan); }
+  .badge-code    { background: rgba(168,85,247,0.15); color: var(--purple); }
+  .badge-text    { background: rgba(107,114,128,0.15); color: #9ca3af; }
+  .badge-url     { background: rgba(59,130,246,0.15); color: var(--blue); }
+  .badge-json    { background: rgba(245,158,11,0.15); color: var(--amber); }
+  .badge-yaml    { background: rgba(16,185,129,0.15); color: var(--green); }
+
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text-primary); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card-actions { display: flex; gap: 4px; margin-left: auto; }
+  .icon-btn {
+    background: transparent; border: none; cursor: pointer;
+    padding: 3px 5px; border-radius: 5px; font-size: 13px;
+    color: var(--text-muted); transition: all 0.15s;
+  }
+  .icon-btn:hover { background: var(--bg-700); color: var(--text-primary); }
+  .icon-btn.active { color: var(--amber); }
+  .icon-btn.pinned { color: var(--cyan); }
+
+  .card-content {
+    font-size: 12px; line-height: 1.5; color: var(--text-secondary);
+    overflow: hidden; max-height: 80px; position: relative;
+  }
+  .card-content.code-content {
+    font-family: 'Fira Code', 'JetBrains Mono', monospace;
+    background: var(--bg-800); border-radius: 6px; padding: 8px 10px;
+    white-space: pre; overflow-x: auto;
+  }
+  .card-content::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 30px; background: linear-gradient(transparent, var(--bg-900));
+    pointer-events: none;
+  }
+  .card-content.code-content::after { background: linear-gradient(transparent, var(--bg-800)); }
+
+  .card-footer { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); }
+  .cat-badge { background: var(--bg-700); padding: 1px 8px; border-radius: 10px; font-size: 11px; }
+  .lang-badge { background: rgba(99,102,241,0.1); color: var(--accent-hover); padding: 1px 8px; border-radius: 10px; font-size: 11px; }
+  .copy-count { margin-left: auto; }
+  .tag-chip { background: var(--bg-700); padding: 1px 7px; border-radius: 10px; font-size: 10px; }
+
+  /* ── Copy button big ── */
+  .copy-btn {
+    background: var(--bg-700); border: 1px solid var(--border); color: var(--text-secondary);
+    border-radius: 7px; padding: 5px 12px; font-size: 12px; cursor: pointer;
+    transition: all 0.15s; display: flex; align-items: center; gap: 5px;
+  }
+  .copy-btn:hover { background: var(--accent); border-color: var(--accent); color: white; }
+  .copy-btn.done { background: var(--green); border-color: var(--green); color: white; }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; padding: 20px;
+  }
+  .modal {
+    background: var(--bg-900); border: 1px solid var(--border); border-radius: 14px;
+    width: 100%; max-width: 700px; max-height: 80vh; overflow-y: auto;
+    padding: 24px; position: relative;
+  }
+  .modal-close {
+    position: absolute; top: 16px; right: 16px; background: var(--bg-700);
+    border: none; color: var(--text-secondary); cursor: pointer;
+    border-radius: 6px; padding: 4px 10px; font-size: 16px;
+  }
+  .modal-close:hover { color: var(--text-primary); background: var(--bg-800); }
+  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; padding-right: 40px; }
+  .modal-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .code-block {
+    background: var(--bg-800); border-radius: 8px; overflow: hidden;
+    position: relative; margin-bottom: 16px;
+  }
+  .code-block pre { margin: 0 !important; background: transparent !important; }
+  .code-block code { font-size: 13px !important; line-height: 1.6 !important; }
+  .code-copy {
+    position: absolute; top: 8px; right: 8px;
+    background: var(--bg-700); border: 1px solid var(--border);
+    color: var(--text-secondary); cursor: pointer; border-radius: 6px;
+    padding: 4px 10px; font-size: 11px; transition: all 0.15s;
+  }
+  .code-copy:hover { background: var(--accent); border-color: var(--accent); color: white; }
+  .code-copy.done { background: var(--green); border-color: var(--green); color: white; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .btn-danger { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--red); border-radius: 7px; padding: 6px 14px; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+  .btn-danger:hover { background: rgba(239,68,68,0.2); }
+  .plain-content { font-size: 13px; line-height: 1.6; color: var(--text-secondary); word-break: break-all; padding: 14px; background: var(--bg-800); border-radius: 8px; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    background: var(--green); color: white; padding: 10px 20px;
+    border-radius: 10px; font-size: 13px; font-weight: 600;
+    transform: translateY(80px); opacity: 0; transition: all 0.3s;
+    pointer-events: none;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── Empty ── */
+  .empty { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg-700); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="logo"><span class="logo-icon">📋</span> ClipBoard</div>
+  <div class="header-stats" id="headerStats"></div>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">Filter</div>
+    <div class="sidebar-item active" data-filter="all" onclick="setCategory('all')">
+      <span>🗂️</span> All clips <span class="count" id="countAll">0</span>
+    </div>
+    <div class="sidebar-item" data-filter="pinned" onclick="setCategory('pinned')">
+      <span>📌</span> Pinned
+    </div>
+    <div class="sidebar-item" data-filter="favorite" onclick="setCategory('favorite')">
+      <span>⭐</span> Favorites
+    </div>
+    <div class="sidebar-section">Categories</div>
+    <div id="catList"></div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <!-- Quick Add -->
+    <div class="quick-add-wrap">
+      <div class="quick-add-bar">
+        <div class="quick-add-icon">✏️</div>
+        <div class="quick-add-inner">
+          <textarea id="qaContent" class="quick-add-textarea" rows="1"
+            placeholder="Paste anything… auto-detects type (command, code, url, json, text)"
+            oninput="autoResizeTA(this); autoDetectType(this.value)"
+            onkeydown="if(e.ctrlKey&&e.key==='Enter'){addClip()}"
+          ></textarea>
+          <div class="quick-add-meta">
+            <input id="qaTitle" class="qa-input" placeholder="Title (optional)" style="flex:1;min-width:120px">
+            <select id="qaType" class="qa-input">
+              <option value="text">text</option>
+              <option value="command">command</option>
+              <option value="code">code</option>
+              <option value="url">url</option>
+              <option value="json">json</option>
+            </select>
+            <select id="qaLang" class="qa-input">
+              <option value="">lang</option>
+              <option value="bash">bash</option>
+              <option value="python">python</option>
+              <option value="javascript">javascript</option>
+              <option value="sql">sql</option>
+              <option value="yaml">yaml</option>
+              <option value="json">json</option>
+              <option value="html">html</option>
+              <option value="css">css</option>
+            </select>
+            <select id="qaCat" class="qa-input">
+              <option value="general">general</option>
+            </select>
+            <button class="btn-add" onclick="addClip()">＋ Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input id="searchInput" class="search-input" placeholder="Search clips…" oninput="debounceSearch(this.value)">
+      </div>
+      <button class="type-btn active" data-type="all" onclick="setType('all')">All</button>
+      <button class="type-btn" data-type="command" onclick="setType('command')">⚡ Commands</button>
+      <button class="type-btn" data-type="code" onclick="setType('code')">💻 Code</button>
+      <button class="type-btn" data-type="text" onclick="setType('text')">📝 Text</button>
+      <button class="type-btn" data-type="url" onclick="setType('url')">🔗 URLs</button>
+      <button class="type-btn" data-type="json" onclick="setType('json')">{ } JSON</button>
+    </div>
+
+    <!-- Feed -->
+    <div class="feed" id="feed">
+      <div class="empty"><div class="empty-icon">📋</div><div>Loading clips…</div></div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- Toast -->
+<div id="toast">✓ Copied!</div>
+
+<script>
+const API = '/api';
+let allClips = [];
+let categories = [];
+let activeCategory = 'all';
+let activeType = 'all';
+let searchQ = '';
+let searchTimer = null;
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+async function boot() {
+  await Promise.all([loadCategories(), loadClips(), loadStats()]);
+}
+
+async function loadStats() {
+  try {
+    const s = await apiFetch('/stats');
+    document.getElementById('headerStats').innerHTML =
+      `<span class="stat-badge">📋 ${s.total} clips</span>` +
+      (s.byType.map(t => `<span class="stat-badge">${typeBadgeHtml(t.contentType)} ${t.count}</span>`).join(''));
+  } catch(e) {}
+}
+
+async function loadCategories() {
+  categories = await apiFetch('/categories');
+  const catEl = document.getElementById('catList');
+  catEl.innerHTML = categories.map(c =>
+    `<div class="sidebar-item" data-filter="cat:${c.name}" onclick="setCategory('cat:${c.name}')">
+      <span>${c.icon}</span> ${c.name}
+    </div>`
+  ).join('');
+  const qaCat = document.getElementById('qaCat');
+  qaCat.innerHTML = categories.map(c =>
+    `<option value="${c.name}">${c.name}</option>`
+  ).join('');
+}
+
+async function loadClips() {
+  const params = new URLSearchParams();
+  if (activeType !== 'all') params.set('type', activeType);
+  if (activeCategory.startsWith('cat:')) params.set('category', activeCategory.slice(4));
+  if (activeCategory === 'pinned') params.set('pinned', '1');
+  if (searchQ) params.set('q', searchQ);
+  params.set('limit', '100');
+  try {
+    allClips = await apiFetch(`/clips?${params}`);
+    renderFeed();
+    document.getElementById('countAll').textContent = allClips.length;
+  } catch(e) {
+    document.getElementById('feed').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div>Failed to load clips</div></div>`;
+  }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderFeed() {
+  const feed = document.getElementById('feed');
+  let clips = allClips;
+  if (activeCategory === 'favorite') clips = clips.filter(c => c.favorite);
+  if (clips.length === 0) {
+    feed.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><div>No clips found</div></div>`;
+    return;
+  }
+  const pinned = clips.filter(c => c.pinned);
+  const rest   = clips.filter(c => !c.pinned);
+  let html = '';
+  if (pinned.length) {
+    html += `<div class="section-label">📌 Pinned (${pinned.length})</div>`;
+    html += `<div class="cards-grid">${pinned.map(cardHtml).join('')}</div>`;
+  }
+  if (rest.length) {
+    if (pinned.length) html += `<div class="section-label">All clips (${rest.length})</div>`;
+    html += `<div class="cards-grid">${rest.map(cardHtml).join('')}</div>`;
+  }
+  feed.innerHTML = html;
+}
+
+function cardHtml(c) {
+  const badge = typeBadgeHtml(c.contentType, c.language);
+  const isCode = c.contentType === 'code' || c.contentType === 'command';
+  const preview = escHtml(c.content.slice(0, 200));
+  const tags = (c.tags||[]).slice(0,3).map(t => `<span class="tag-chip">${escHtml(t)}</span>`).join('');
+  return `
+  <div class="clip-card" id="card-${c.id}" onclick="openModal(${c.id})">
+    <div class="card-header">
+      ${badge}
+      <div class="card-title">${escHtml(c.title || c.content.slice(0,40))}</div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="icon-btn ${c.pinned?'pinned':''}" title="${c.pinned?'Unpin':'Pin'}" onclick="togglePin(${c.id},${c.pinned})">${c.pinned?'📌':'📍'}</button>
+        <button class="icon-btn ${c.favorite?'active':''}" title="${c.favorite?'Unfav':'Fav'}" onclick="toggleFav(${c.id},${c.favorite})">${c.favorite?'⭐':'☆'}</button>
+        <button class="copy-btn" onclick="copyClip(${c.id},'card-${c.id}')">⎘ Copy</button>
+      </div>
+    </div>
+    <div class="card-content ${isCode?'code-content':''}">${preview}</div>
+    <div class="card-footer">
+      <span class="cat-badge">${c.category}</span>
+      ${c.language?`<span class="lang-badge">${c.language}</span>`:''}
+      ${tags}
+      ${c.copyCount>0?`<span class="copy-count">⎘ ${c.copyCount}</span>`:''}
+    </div>
+  </div>`;
+}
+
+function typeBadgeHtml(type, lang) {
+  const map = { command:'badge-command', code:'badge-code', text:'badge-text', url:'badge-url', json:'badge-json' };
+  const cls = map[type] || 'badge-text';
+  const label = lang ? `${type}/${lang}` : type;
+  return `<span class="type-badge ${cls}">${label}</span>`;
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+async function openModal(id) {
+  const c = allClips.find(x => x.id === id) || await apiFetch(`/clips/${id}`);
+  const isCode = c.contentType === 'code' || c.contentType === 'command';
+  const lang = c.language || (c.contentType === 'json' ? 'json' : 'text');
+  let contentHtml;
+  if (isCode || c.contentType === 'json') {
+    contentHtml = `
+      <div class="code-block">
+        <button class="code-copy" id="mCopyBtn" onclick="copyModalClip(${c.id})">⎘ Copy</button>
+        <pre><code class="language-${lang}">${escHtml(c.content)}</code></pre>
+      </div>`;
+  } else {
+    contentHtml = `<div class="plain-content">${escHtml(c.content)}</div>
+      <button class="copy-btn" style="margin-top:12px" id="mCopyBtn" onclick="copyModalClip(${c.id})">⎘ Copy to clipboard</button>`;
+  }
+  const tags = (c.tags||[]).map(t=>`<span class="tag-chip">${escHtml(t)}</span>`).join('');
+  document.getElementById('modalContent').innerHTML = `
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">${escHtml(c.title || c.content.slice(0,60))}</div>
+    <div class="modal-meta">
+      ${typeBadgeHtml(c.contentType, c.language)}
+      <span class="cat-badge">${c.category}</span>
+      ${tags}
+      ${c.copyCount>0?`<span class="copy-count" style="color:var(--text-muted);font-size:11px">⎘ ${c.copyCount} copies</span>`:''}
+    </div>
+    ${contentHtml}
+    <div style="font-size:11px;color:var(--text-muted);margin-top:8px">Created: ${c.createdAt}${c.source?` · Source: ${c.source}`:''}</div>
+    <div class="modal-actions">
+      <button class="icon-btn" style="font-size:13px;padding:6px 12px;border:1px solid var(--border);border-radius:7px" onclick="togglePin(${c.id},${c.pinned})">${c.pinned?'📌 Unpin':'📍 Pin'}</button>
+      <button class="icon-btn" style="font-size:13px;padding:6px 12px;border:1px solid var(--border);border-radius:7px" onclick="toggleFav(${c.id},${c.favorite})">${c.favorite?'⭐ Unfav':'☆ Fav'}</button>
+      <button class="btn-danger" onclick="deleteClip(${c.id})">🗑 Delete</button>
+    </div>
+  `;
+  document.getElementById('modal').style.display = 'flex';
+  // Syntax highlight
+  document.querySelectorAll('#modalContent pre code').forEach(el => hljs.highlightElement(el));
+}
+
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+async function copyModalClip(id) {
+  const c = allClips.find(x=>x.id===id) || await apiFetch(`/clips/${id}`);
+  await navigator.clipboard.writeText(c.content);
+  await apiFetch(`/clips/${id}/copy`, { method:'POST' });
+  const btn = document.getElementById('mCopyBtn');
+  btn.textContent = '✓ Copied!'; btn.classList.add('done');
+  setTimeout(() => { btn.textContent = '⎘ Copy'; btn.classList.remove('done'); }, 2000);
+  showToast('Copied!');
+  loadClips();
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+async function copyClip(id, cardId) {
+  const c = allClips.find(x=>x.id===id);
+  if (!c) return;
+  try {
+    await navigator.clipboard.writeText(c.content);
+    await apiFetch(`/clips/${id}/copy`, { method:'POST' });
+    showToast('✓ Copied!');
+    const card = document.getElementById(cardId);
+    if (card) { card.classList.add('copied'); setTimeout(()=>card.classList.remove('copied'),1500); }
+    c.copyCount++;
+    const cc = card?.querySelector('.copy-count');
+    if (cc) cc.textContent = `⎘ ${c.copyCount}`;
+  } catch(e) { showToast('❌ Copy failed'); }
+}
+
+async function togglePin(id, current) {
+  await apiFetch(`/clips/${id}`, { method:'PATCH', body: JSON.stringify({ pinned: !current }) });
+  closeModal();
+  loadClips();
+}
+
+async function toggleFav(id, current) {
+  await apiFetch(`/clips/${id}`, { method:'PATCH', body: JSON.stringify({ favorite: !current }) });
+  closeModal();
+  loadClips();
+}
+
+async function deleteClip(id) {
+  if (!confirm('Delete this clip?')) return;
+  await apiFetch(`/clips/${id}`, { method:'DELETE' });
+  closeModal();
+  loadClips();
+  loadStats();
+}
+
+async function addClip() {
+  const content = document.getElementById('qaContent').value.trim();
+  if (!content) return;
+  const title = document.getElementById('qaTitle').value.trim();
+  const contentType = document.getElementById('qaType').value;
+  const language = document.getElementById('qaLang').value;
+  const category = document.getElementById('qaCat').value;
+  await apiFetch('/clips', { method:'POST', body: JSON.stringify({ title, content, contentType, language, category, tags:[], source:'ui' }) });
+  document.getElementById('qaContent').value = '';
+  document.getElementById('qaTitle').value = '';
+  document.getElementById('qaContent').style.height = '';
+  showToast('✓ Clip saved!');
+  loadClips(); loadStats();
+}
+
+// ── Filters ───────────────────────────────────────────────────────────────────
+function setCategory(filter) {
+  activeCategory = filter;
+  document.querySelectorAll('.sidebar-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.filter === filter);
+  });
+  loadClips();
+}
+
+function setType(type) {
+  activeType = type;
+  document.querySelectorAll('.type-btn').forEach(el => {
+    el.classList.toggle('active', el.dataset.type === type);
+  });
+  loadClips();
+}
+
+function debounceSearch(q) {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { searchQ = q; loadClips(); }, 300);
+}
+
+// ── Auto detect ───────────────────────────────────────────────────────────────
+function autoDetectType(val) {
+  const v = val.trim();
+  let type = 'text', lang = '';
+  if (!v) return;
+  if (v.startsWith('http://') || v.startsWith('https://')) { type = 'url'; }
+  else if (v.startsWith('{') || v.startsWith('[')) { try { JSON.parse(v); type = 'json'; lang = 'json'; } catch(e){} }
+  else if (/^(curl|ssh|git|docker|npm|pip|python3?|node|ls|cd|mkdir|rm|cat|grep|awk|sed|echo)\s/.test(v)) { type = 'command'; lang = 'bash'; }
+  else if (/\n/.test(v) && v.length > 50) { type = 'code'; }
+  document.getElementById('qaType').value = type;
+  if (lang) document.getElementById('qaLang').value = lang;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function autoResizeTA(el) {
+  el.style.height = '';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+async function apiFetch(path, opts={}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json', ...(opts.headers||{}) },
+    ...opts
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer;
+function showToast(msg='✓ Copied!') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+boot();
+</script>
+</body>
+</html>
