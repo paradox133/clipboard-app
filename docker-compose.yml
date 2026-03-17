@@ -2,6 +2,7 @@ name: clipboard
 
 services:
   backend:
+    image: clipboard-backend
     build: ./backend
     container_name: clipboard-backend
     ports: ["3089:3089"]
@@ -13,6 +14,7 @@ services:
       - TZ=America/New_York
     restart: unless-stopped
   frontend:
+    image: clipboard-frontend
     build: ./frontend
     container_name: clipboard-frontend
     ports: ["8274:80"]
